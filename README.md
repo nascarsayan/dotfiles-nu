@@ -27,8 +27,12 @@ brew install nushell fzf zoxide starship helix-editor zellij atuin
     atuin init nu | save -f atuin.nu
     zoxide init nushell | save -f zoxide.nu
     ```
-- I edited [zoxide.nu](./3p-configs/zoxide.nu) because it was using some deprecated / removed commands.
-- I edited [atuin.nu](./3p-configs/atuin.nu) and [zoxide.nu](./3p-configs/zoxide.nu) so that `use` command can also be used to import those files.
+    - I edited [zoxide.nu](./3p-configs/zoxide.nu) because it was using some deprecated / removed commands.
+    - I edited [atuin.nu](./3p-configs/atuin.nu) and [zoxide.nu](./3p-configs/zoxide.nu) so that `use` command can also be used to import those files.
+
+- The [git aliases](./aliases/git.nu) was downloaded from [nu-scripts](https://github.com/nushell/nu_scripts/blob/main/aliases/git/git-aliases.nu)
+
+- The [kubectl aliases](./aliases/kubectl.nu) was downloaded from [kubcetl-aliases](https://github.com/nascarsayan/kubectl-aliases)
 
 ### Installation
 

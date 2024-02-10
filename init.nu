@@ -13,6 +13,11 @@ export-env {
     )
     EDITOR: "hx"
     ZELLIJ_AUTO_ATTACH: "true"
+    HELM_EXPERIMENTAL_OCI: "1"
+    GO111MODULE: "on"
+    LC_ALL: "en_IN.UTF-8"
+    LANG: "en_IN.UTF-8"
+    DOCKER_BUILDKIT: "1"
   }
 }
 
@@ -31,7 +36,7 @@ export def --env set_govc_env [vc_env: string] {
 
 # Somehow PATH is getting updated twice, due to auto_zellij and export-env,
 # so we need to make sure that we only run export-env once
-if (not ("once" in $env)) {
+if ($env.once? | is-empty) {
   $env.once = "true"
 }
 

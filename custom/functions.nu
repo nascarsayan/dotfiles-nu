@@ -22,7 +22,7 @@ export def auto_zellij [] {
   }
 }
 
-export def gcl [$url: string] {
+export def --env gcl [$url: string] {
   mut $path = $url
   if ($path | str ends-with ".git") {
     $path = ($path | str substring 0..-4)
@@ -33,8 +33,14 @@ export def gcl [$url: string] {
       $path = ($path | str substring ($pattern | str length)..)
     }
   }
-  let $dir_path = ($env.HOME | path join "Code" $path)
-  git clone $url $dir_path
+  $path = ($env.HOME | path join "Code" $path)
+  git clone $url $path
+  cd $path
+}
+
+export def --env mkcd [directory: path] {
+  mkdir $directory
+  cd $directory
 }
 
 export def gco [$branch: string] {
@@ -71,6 +77,6 @@ export def get_govc_entry_curry (
       print $"Expected 1 record, found ($record | length)"
       return
     }
-    $record | first
+    $record | first | merge { GOVC_INSECURE: "true" }
   }
 }
