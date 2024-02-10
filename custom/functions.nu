@@ -1,20 +1,4 @@
-export-env {
-  if ("once" in $env) {
-    return
-  }
-  load-env {
-    PATH: (
-      $env.PATH
-      | split row (char esep)
-      | prepend "/home/linuxbrew/.linuxbrew/bin"
-      | prepend ($env.HOME | path join ".gobrew" "current" "bin")
-      | prepend ($env.HOME | path join ".gobrew" "bin")
-      | prepend ($env.HOME | path join "go" "bin")
-    )
-    EDITOR: "hx"
-    ZELLIJ_AUTO_ATTACH: "true"
-  }
-}
+
 
 export def auto_zellij [] {
   if ((not ("ZELLIJ" in $env))
@@ -71,17 +55,4 @@ export def ggpull () {
   git pull origin (git_current_branch)
 }
 
-source ./completions/git.nu
-source ./completions/make.nu
 
-source ./configs/atuin.nu
-source ./configs/starship.nu
-source ./configs/zoxide.nu
-
-# Somehow PATH is getting updated twice, due to auto_zellij and export-env,
-# so we need to make sure that we only run export-env once
-if (not ("once" in $env)) {
-  $env.once = "true"
-}
-
-auto_zellij
