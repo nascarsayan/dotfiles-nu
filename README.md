@@ -37,7 +37,10 @@ brew install nushell fzf zoxide starship helix-editor zellij atuin
 ### Installation
 
 ```nu
-mkdir ~/Code/github.com/nascarsayan
-git clone https://github.com/nascarsayan/dotfiles-nu.git ~/Code/github.com/nascarsayan/dotfiles-nu
-(char newline) + "source ~/Code/github.com/nascarsayan/dotfiles-nu/init.nu" | save --append $nu.default-config-dir/config.nu
+let dest = "~/Code/github.com/nascarsayan/dotfiles-nu"
+let dest_parent = (dirname $dest)
+git clone https://github.com/nascarsayan/dotfiles-nu.git $dest_parent
+# Copy the example data file to the actual data file, edit it as needed
+cp $"($dest)/custom/data/data.example.nu" $"($dest)/custom/data/data.nu"
+(char newline) + $"source ($dest)/init.nu" | save --append $nu.default-config-dir/config.nu
 ```
