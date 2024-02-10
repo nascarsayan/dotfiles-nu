@@ -37,7 +37,7 @@ brew install nushell fzf zoxide starship helix-editor zellij atuin
 ### Installation
 
 ```nu
-mkdir ~/Code/github.com/nascarsayan/dotfiles-nu
+mkdir ~/Code/github.com/nascarsayan
 git clone https://github.com/nascarsayan/dotfiles-nu.git ~/Code/github.com/nascarsayan/dotfiles-nu
 (char newline) + "source ~/Code/github.com/nascarsayan/dotfiles-nu/init.nu" | save --append $nu.default-config-dir/config.nu
 ```
