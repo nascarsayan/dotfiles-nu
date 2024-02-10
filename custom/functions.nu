@@ -55,4 +55,22 @@ export def ggpull () {
   git pull origin (git_current_branch)
 }
 
+export def hello (name: string) {
+  return { |x: string| $"Hello, ($name) ($x)" }
+}
 
+export def get_govc_entry_curry (
+  vcenter_envlist: table<
+    VC_ENV: string,
+    GOVC_URL: string,
+    GOVC_USERNAME: string,
+  GOVC_PASSWORD: string>) {
+  return { |vc_env: string| 
+    let record = $vcenter_envlist | where VC_ENV == $vc_env
+    if (($record | length) != 1) {
+      print $"Expected 1 record, found ($record | length)"
+      return
+    }
+    $record | first
+  }
+}
