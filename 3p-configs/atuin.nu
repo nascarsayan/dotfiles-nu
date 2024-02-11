@@ -19,12 +19,16 @@
 # )
 
 export-env {
-    if (not ("ATUIN_KEYBINDING_TOKEN" in $env)) {
+    if "ATUIN_KEYBINDING_TOKEN" not-in $env {
         $env.ATUIN_KEYBINDING_TOKEN = $"# (random uuid)"
     }
+    let INCOGNITO = "INCOGNITO"
     # Magic token to make sure we don't record commands run by keybindings
     let ATUIN_KEYBINDING_TOKEN = $env.ATUIN_KEYBINDING_TOKEN
     let _atuin_pre_execution = {||
+        if INCOGNITO in $env {
+            return
+        }
         let cmd = (commandline)
         if ($cmd | is-empty) {
             return
@@ -35,6 +39,9 @@ export-env {
     }
 
     let _atuin_pre_prompt = {||
+        if INCOGNITO in $env {
+            return
+        }
         let last_exit = $env.LAST_EXIT_CODE
         if 'ATUIN_HISTORY_ID' not-in $env {
             return

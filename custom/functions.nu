@@ -1,25 +1,54 @@
+# List all the IP addresses of the machine
+export def ip-list []: nothing -> table<ver: string, interface_addr: string> {
+  ip a
+  | split row (char newline)
+  | each { str trim }
+  | where ($it | str starts-with "inet")
+  | split column --collapse-empty --regex '\s+' ver interface_addr
+}
 
+# Attach zellij if the session is SSH
+export def ssh-attach-zellij [] {
+  if ("ZELLIJ" in $env) {
+    # Don't nest zellij sessions
+    return
+  }
 
-export def auto_zellij [] {
-  if ((not ("ZELLIJ" in $env))
-    and
-    ((which code | length) == 0) and ((which code-insiders | length) == 0)
-  ) {
-    # Check if ZELLIJ_AUTO_ATTACH is set to "true"
-    if ("ZELLIJ_AUTO_ATTACH" in $env and $env.ZELLIJ_AUTO_ATTACH == "true") {
-      # Run zellij with the attach option
-      zellij attach -c
-    } else {
-      # Run zellij without options
-      zellij
-    }
-
-    # Check if ZELLIJ_AUTO_EXIT is set to "true"
-    if ("ZELLIJ_AUTO_EXIT" in $env and $env.ZELLIJ_AUTO_EXIT == "true") {
-      # Exit NuShell
-      exit
+  # Don't attach zellij in vscode integrated terminal
+  let blacklisted_binaries = ["code", "code-insiders"]
+  for binary in $blacklisted_binaries {
+    if ((which $binary | length) > 0) {
+      return
     }
   }
+
+  # If env does not have "SSH_CONNECTION", don't attach zellij
+  if ($env.SSH_CLIENT? | is-empty) {
+    return
+  }
+
+  # If ssh client is localhost, don't attach zellij
+  let ssh_client = ($env.SSH_CLIENT | split column --collapse-empty --regex
+'\s+' src_ip src_port dst_port | first)
+  let src_ip = $ssh_client.src_ip
+  let localhost_ips = ["::1", "localhost", "127.0.0.1"]
+  if ($src_ip in $localhost_ips) {
+    print "SSH-ing from localhost, not attaching zellij"
+    return
+  }
+  if ((which ip | length) > 0) {
+    let ip_addresses = (
+      ip-list
+      | reduce -f [] {|it, acc| $acc | append ($it.interface_addr | split row "/" | first)}
+    )
+    if ($src_ip in $ip_addresses) {
+      print "SSH-ing from Local IP address, not attaching zellij"
+      return
+    }
+  }
+
+  # If env has "ZELLIJ_SSH_PANE_NAME", use that name to attach zellij
+  zellij attach -c ($env.ZELLIJ_SSH_PANE_NAME? | default "ssh_zellij")
 }
 
 export def --env gcl [$url: string] {
@@ -51,18 +80,17 @@ export def git_current_branch () {
   git branch --show-current | str trim -c "\n"
 }
 
-export def ggpush [$message: string] {
+export def ggpush [
+  message: string
+  --force(-f)
+] {
   git add .
   git commit -m $message
-  git push origin (git_current_branch)
+  git push origin (git_current_branch) ...(if $force {[-f]} else {[]})
 }
 
 export def ggpull () {
   git pull origin (git_current_branch)
-}
-
-export def hello (name: string) {
-  return { |x: string| $"Hello, ($name) ($x)" }
 }
 
 export def get_govc_entry_curry (
