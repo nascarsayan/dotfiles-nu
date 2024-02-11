@@ -97,6 +97,7 @@ export def git_current_branch () {
   git branch --show-current | str trim -c "\n"
 }
 
+# Add, commit and push changes to the current branch. If --force is provided, force push the changes.
 export def ggpush [
   message: string
   --force(-f)
