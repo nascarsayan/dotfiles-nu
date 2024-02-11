@@ -61,16 +61,15 @@ nu
 ### Installation
 
 ```nu
-let dest = "~/Code/github.com/nascarsayan/dotfiles-nu"
-let dest_parent = (dirname $dest)
-git clone https://github.com/nascarsayan/dotfiles-nu.git $dest_parent
+let dotfiles_dir = "~/Code/github.com/nascarsayan/dotfiles-nu"
+git clone https://github.com/nascarsayan/dotfiles-nu.git $dotfiles_dir
 # Copy the example data file to the actual data file, edit it as needed
-cp $"($dest)/custom/data/data.example.nu" $"($dest)/custom/data/data.nu"
-(char newline) + $"source ($dest)/init.nu" | save --append $nu.default-config-dir/config.nu
+cp $"($dotfiles_dir)/custom/data/data.example.nu" $"($dotfiles_dir)/custom/data/data.nu"
+(char newline) + $"source ($dotfiles_dir)/init.nu" | save --append $nu.default-config-dir/config.nu
 ```
 
 Copy other config files as needed.
 
 ```nu
-cp $"($dest)/other/starship.toml" ~/.config/starship.toml
+cp $"($dotfiles_dir)/custom/starship.toml" ~/.config/starship.toml
 ```

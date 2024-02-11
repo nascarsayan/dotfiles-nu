@@ -1,214 +1,641 @@
-export def git_current_branch [] {
-    (gstat).branch
+use argx.nu
+
+def agree [
+    prompt
+    --default-not (-n)
+] {
+    let prompt = if ($prompt | str ends-with '!') {
+        $'(ansi red)($prompt)(ansi reset)'
+    } else {
+        $'($prompt)'
+    }
+    ( if $default_not { [no yes] } else { [yes no] } | input list $prompt) in [yes]
 }
 
-export def git_main_branch [] {
-    git remote show origin
-        | lines
-        | str trim
-        | find --regex 'HEAD .*?[：: ].+'
-        | first
-        | str replace --regex 'HEAD .*?[：: ]\s*(.+)' '$1'
+def tips [ msg ] {
+    print -e $"(ansi light_gray)($msg)(ansi reset)"
 }
 
-#
-# Aliases
-# (sorted alphabetically)
-#
-
-export alias ga = git add
-export alias gaa = git add --all
-export alias gapa = git add --patch
-export alias gau = git add --update
-export alias gav = git add --verbose
-export alias gap = git apply
-export alias gapt = git apply --3way
-
-export alias gb = git branch
-export alias gba = git branch --all
-export alias gbd = git branch --delete
-export alias gbD = git branch --delete --force
-export alias gbl = git blame -b -w
-export alias gbm = git branch --move
-export alias gbmc = git branch --move (git_current_branch)
-export alias gbnm = git branch --no-merged
-export alias gbr = git branch --remote
-export alias gbs = git bisect
-export alias gbsb = git bisect bad
-export alias gbsg = git bisect good
-export alias gbsn = git bisect new
-export alias gbso = git bisect old
-export alias gbsr = git bisect reset
-export alias gbss = git bisect start
-
-export alias gc = git commit --verbose
-export alias gc! = git commit --verbose --amend
-export alias gcn = git commit --verbose --no-edit
-export alias gcn! = git commit --verbose --no-edit --amend
-export alias gca = git commit --verbose --all
-export alias gca! = git commit --verbose --all --amend
-export alias gcan! = git commit --verbose --all --no-edit --amend
-export alias gcans! = git commit --verbose --all --signoff --no-edit --amend
-export alias gcam = git commit --all --message
-export alias gcsm = git commit --signoff --message
-export alias gcas = git commit --all --signoff
-export alias gcasm = git commit --all --signoff --message
-export alias gcb = git checkout -b
-export alias gcd = git checkout develop
-export alias gcf = git config --list
-
-export alias gcl = git clone --recurse-submodules
-export alias gclean = git clean --interactive -d
-export def gpristine [] {
-    git reset --hard
-    git clean -d --force -x
-}
-export alias gcm = git checkout (git_main_branch)
-export alias gcmsg = git commit --message
-export alias gco = git checkout
-export alias gcor = git checkout --recurse-submodules
-export alias gcount = git shortlog --summary --numbered
-export alias gcp = git cherry-pick
-export alias gcpa = git cherry-pick --abort
-export alias gcpc = git cherry-pick --continue
-export alias gcs = git commit --gpg-sign
-export alias gcss = git commit --gpg-sign --signoff
-export alias gcssm = git commit --gpg-sign --signoff --message
-
-export alias gd = git diff
-export alias gdca = git diff --cached
-export alias gdcw = git diff --cached --word-diff
-export alias gdct = git describe --tags (git rev-list --tags --max-count=1)
-export alias gds = git diff --staged
-export alias gdt = git diff-tree --no-commit-id --name-only -r
-export alias gdup = git diff @{upstream}
-export alias gdw = git diff --word-diff
-
-export alias gf = git fetch
-export alias gfa = git fetch --all --prune
-export alias gfo = git fetch origin
-
-export alias gg = git gui citool
-export alias gga = git gui citool --amend
-
-export alias ghh = git help
-
-export alias gignore = git update-index --assume-unchanged
-
-export alias gl = git log
-export alias glg = git log --stat
-export alias glgp = git log --stat --patch
-export alias glgg = git log --graph
-export alias glgga = git log --graph --decorate --all
-export alias glgm = git log --graph --max-count=10
-export alias glo = git log --oneline --decorate
-export alias glod = git log --graph $'--pretty=%Cred%h%Creset -%C(char lp)auto(char rp)%d%Creset %s %Cgreen(char lp)%ad(char rp) %C(char lp)bold blue(char rp)<%an>%Creset'
-export alias glods = git log --graph $'--pretty=%Cred%h%Creset -%C(char lp)auto(char rp)%d%Creset %s %Cgreen(char lp)%ad(char rp) %C(char lp)bold blue(char rp)<%an>%Creset' --date=short
-export alias glog = git log --oneline --decorate --graph
-export alias gloga = git log --oneline --decorate --graph --all
-export alias glol = git log --graph $'--pretty=%Cred%h%Creset -%C(char lp)auto(char rp)%d%Creset %s %Cgreen(char lp)%ar(char rp) %C(char lp)bold blue(char rp)<%an>%Creset'
-export alias glola = git log --graph $'--pretty=%Cred%h%Creset -%C(char lp)auto(char rp)%d%Creset %s %Cgreen(char lp)%ar(char rp) %C(char lp)bold blue(char rp)<%an>%Creset' --all
-export alias glols = git log --graph $'--pretty=%Cred%h%Creset -%C(char lp)auto(char rp)%d%Creset %s %Cgreen(char lp)%ar(char rp) %C(char lp)bold blue(char rp)<%an>%Creset' --stat
-
-export alias gm = git merge
-export alias gmtl = git mergetool --no-prompt
-export alias gmtlvim = git mergetool --no-prompt --tool=vimdiff
-export alias gma = git merge --abort
-export def gmom [] {
-    let main = (git_main_branch)
-    git merge $"origin/($main)"
+def --wrapped with-flag [...flag] {
+    if ($in | is-empty) { [] } else { [...$flag $in] }
 }
 
-export alias gp = git push
-export alias gpd = git push --dry-run
-export alias gpf = git push --force-with-lease
-export alias gpf! = git push --force
-export alias gpl = git pull
-export def gpoat [] {
-    git push origin --all; git push origin --tags
+# git status
+export def gs [] {
+    git status
 }
-export alias gpod = git push origin --delete
-export alias gpodc = git push origin --delete (git_current_branch)
-export alias gpr = git pull --rebase
-export alias gpu = git push upstream
-export alias gpv = git push --verbose
 
-export alias gr = git remote
-export alias gpra = git pull --rebase --autostash
-export alias gprav = git pull --rebase --autostash --verbose
-export alias gprv = git pull --rebase --verbose
-export alias gpsup = git push --set-upstream origin (git_current_branch)
-export alias gra = git remote add
-export alias grb = git rebase
-export alias grba = git rebase --abort
-export alias grbc = git rebase --continue
-export alias grbd = git rebase develop
-export alias grbi = git rebase --interactive
-export alias grbm = git rebase (git_main_branch)
-export alias grbo = git rebase --onto
-export alias grbs = git rebase --skip
-export alias grev = git revert
-export alias grh = git reset
-export alias grhh = git reset --hard
-export alias groh = git reset $"origin/(git_current_branch)" --hard
-export alias grm = git rm
-export alias grmc = git rm --cached
-export alias grmv = git remote rename
-export alias grrm = git remote remove
-export alias grs = git restore
-export alias grset = git remote set-url
-export alias grss = git restore --source
-export alias grst = git restore --staged
-export alias grt = cd (git rev-parse --show-toplevel or echo .)
-export alias gru = git reset --
-export alias grup = git remote update
-export alias grv = git remote --verbose
+# git stash
+export def gst [
+    --apply (-a)
+    --clear (-c)
+    --drop (-d)
+    --list (-l)
+    --pop (-p)
+    --show (-s)
+    --all (-A)
+    --include-untracked (-i)
+] {
+    if $apply {
+        git stash apply
+    } else if $clear {
+        git stash clear
+    } else if $drop {
+        git stash drop
+    } else if $list {
+        git stash list
+    } else if $pop {
+        git stash pop
+    } else if $show {
+        git stash show --text
+    } else if $all {
+        git stash --all ...(if $include_untracked {[--include-untracked]} else {[]})
+    } else {
+        git stash
+    }
+}
 
-export alias gsb = git status --short --branch
-export alias gsd = git svn dcommit
-export alias gsh = git show
-export alias gshs = git show -s
-export alias gsi = git submodule init
-export alias gsps = git show --pretty=short --show-signature
-export alias gsr = git svn rebase
-export alias gss = git status --short
-export alias gst = git status
+# git log
+export def gl [
+    commit?: string@"nu-complete git log"
+    --verbose(-v)
+    --num(-n):int=32
+] {
+    if ($commit|is-empty) {
+        _git_log $verbose $num
+    } else {
+        git log --stat -p -n 1 $commit
+    }
+}
 
-export alias gsta = git stash push
-export alias gstaa = git stash apply
-export alias gstc = git stash clear
-export alias gstd = git stash drop
-export alias gstl = git stash list
-export alias gstp = git stash pop
-export alias gsts = git stash show --text
-export alias gstu = gsta --include-untracked
-export alias gstall = git stash --all
-export alias gsu = git submodule update
+# git branch
+export def gb [
+    branch?:          string@"nu-complete git branches"
+    remote?:          string@"nu-complete git remote branches"
+    --delete (-d)
+    --no-merged (-n)
+] {
+    let bs = git branch | lines | each {|x| $x | str substring 2..}
+    if ($branch | is-empty) {
+        let d = {
+            local: (git branch | lines)
+            remote: (git branch --remote | lines)
+            no-merged: (git branch --no-merged | lines)
+        }
+        print ($d | table -i 1 -e)
+    } else if $delete {
+        if $branch in $bs and (agree 'branch will be delete!') {
+                git branch -D $branch
+        }
+        if $branch in (remote_braches | each {|x| $x.1}) and (agree 'delete remote branch?!') {
+            let remote = if ($remote|is-empty) { 'origin' } else { $remote }
+            git branch -D -r $'($remote)/($branch)'
+            git push $remote -d $branch
+        }
+    } else if $branch in $bs {
+        git checkout $branch
+    } else {
+        if (agree 'create new branch?') {
+            git checkout -b $branch
+        }
+    }
+}
+
+# git clone, init
+export def --env gn [
+    repo?:            string@"nu-complete git branches"
+    local?:           path
+    --submodule (-s)  # git submodule
+    --init (-i)       # git init
+] {
+     if $init {
+        if ($repo | is-empty) {
+            git init --initial-branch main
+        } else {
+            git init $repo --initial-branch main
+            cd $repo
+        }
+        if $submodule {
+            git submodule init
+        }
+    } else {
+        let local = if ($local | is-empty) {
+            $repo | path basename | split row '.' | get 0
+        } else {
+            $local
+        }
+        git clone ...(if $submodule {[--recurse-submodules]} else {[]}) $repo $local
+        cd $local
+    }
+}
+
+# edit .gitignore
+export def gig [] {
+    e $"(git rev-parse --show-toplevel)/.gitignore"
+}
+
+# git pull, push and switch
+export def gp [
+    branch?:             string@"nu-complete git remote branches"
+    remote?:             string@"nu-complete git remote branches"
+    --force (-f)         # git push -f
+    --override
+    --submodule (-s)     # git submodule
+    --init (-i)          # git init
+    --merge (-m)         # git pull (no)--rebase
+    --autostash (-a)     # git pull --autostash
+    --back-to-prev (-b)  # back to branch
+] {
+    if $submodule {
+        git submodule update
+    } else if $override {
+        git pull --rebase
+        git add --all
+        git commit -v -a --no-edit --amend
+        git push --force
+    } else {
+        let m = if $merge { [] } else { [--rebase] }
+        let a = if $autostash {[--autostash]} else {[]}
+        let branch = if ($branch | is-empty) { (_git_status).branch } else { $branch }
+        let branch_repr = $'(ansi yellow)($branch)(ansi light_gray)'
+        let remote = if ($remote|is-empty) { 'origin' } else { $remote }
+        let lbs = git branch | lines | each {|x| $x | str substring 2..}
+        let rbs = remote_braches | each {|x| $x.1}
+        let prev = (_git_status).branch
+        if $branch in $rbs {
+            if $branch in $lbs {
+                let bmsg = $'both local and remote have ($branch_repr) branch'
+                if $force {
+                    tips $'($bmsg), with `--force`, push'
+                    git branch -u $'($remote)/($branch)' $branch
+                    git push --force
+                } else {
+                    tips $'($bmsg), pull'
+                    if $prev != $branch {
+                        tips $'switch to ($branch_repr)'
+                        git checkout $branch
+                    }
+                    git pull ...$m ...$a
+                }
+            } else {
+                tips $"local doesn't have ($branch_repr) branch, fetch"
+                git checkout -b $branch
+                git fetch $remote $branch
+                git branch -u $'($remote)/($branch)' $branch
+                git pull ...$m ...$a -v
+            }
+        } else {
+            let bmsg = $"remote doesn't have ($branch_repr) branch"
+            let force = if $force {[--force]} else {[]}
+            if $branch in $lbs {
+                tips $'($bmsg), set upstream and push'
+                git checkout $branch
+            } else {
+                tips $'($bmsg), create and push'
+                git checkout -b $branch
+            }
+            git push ...$force --set-upstream $remote $branch
+        }
+
+        if $back_to_prev {
+            git checkout $prev
+        }
+
+        let s = (_git_status)
+        if $s.ahead > 0 {
+            tips 'remote is behind, push'
+            git push
+        }
+    }
+}
+
+# git add, rm and restore
+export def ga [
+    file?:          path
+    --all (-A)
+    --patch (-p)
+    --update (-u)
+    --verbose (-v)
+    --delete (-d)   # git rm
+    --cached (-c)
+    --force (-f)
+    --restore (-r)  # git restore
+    --staged (-s)
+    --source (-o):  string
+] {
+    if $delete {
+        let c = if $cached {[--cached]} else {[]}
+        let f = if $force {[--force]} else {[]}
+        git rm ...$c ...$f -r $file
+    } else if $restore {
+        let o = $source | with-flag --source
+        let s = if $staged {[--staged]} else {[]}
+        let file = if ($file | is-empty) { [.] } else { [$file] }
+        git restore ...$o ...$s ...$file
+    } else {
+        let a = if $all {[--all]} else {[]}
+        let p = if $patch {[--patch]} else {[]}
+        let u = if $update {[--update]} else {[]}
+        let v = if $verbose {[--verbose]} else {[]}
+        let f = if $force {[--force]} else {[]}
+        let file = if ($file | is-empty) { [.] } else { [$file] }
+        git add ...([$a $p $u $v $f $file] | flatten)
+    }
+
+}
+
+# git commit
+export def gc [
+    message?:     string
+    --all (-A)
+    --amend (-a)
+    --keep (-k)
+] {
+    let m = $message | with-flag -m
+    let a = if $all {[--all]} else {[]}
+    let n = if $amend {[--amend]} else {[]}
+    let k = if $keep {[--no-edit]} else {[]}
+    git commit -v ...$m ...$a ...$n ...$k
+}
+
+# git diff
+export def gd [
+    file?:            path
+    --cached (-c)     # cached
+    --word-diff (-w)  # word-diff
+    --staged (-s)     # staged
+] {
+    let w = if $word_diff {[--word-diff]} else {[]}
+    let c = if $cached {[--cached]} else {[]}
+    let s = if $staged {[--staged]} else {[]}
+    git diff ...$c ...$s ...$w ...($file | with-flag)
+}
+
+# git merge
+export def gm [
+    branch?:            string@"nu-complete git branches"
+    --abort (-a)
+    --continue (-c)
+    --quit (-q)
+    --no-squash (-n) # git merge (no)--squash
+] {
+    let x = if $no_squash { [] } else { [--squash] }
+    if ($branch | is-empty) {
+        git merge ...$x $"origin/(git_main_branch)"
+    } else {
+        git merge ...$x $branch
+    }
+    if not $no_squash {
+        git commit -v
+    }
+}
+
+# git rebase
+# TODO: --onto: (commit_id)
+export def gr [
+    branch?:            string@"nu-complete git branches"
+    --interactive (-i)
+    --onto (-o):        string
+    --abort (-a)
+    --continue (-c)
+    --skip (-s)
+    --quit (-q)
+] {
+    if $abort {
+        git rebase --abort
+    } else if $continue {
+        git rebase --continue
+    } else if $skip {
+        git rebase --skip
+    } else if $quit {
+        git rebase --quit
+    } else if not ($onto | is-empty) {
+        git rebase --onto $branch
+    } else {
+        let i = if $interactive {[--interactive]} else {[]}
+        if ($branch | is-empty) {
+            git rebase ...$i (git_main_branch)
+        } else {
+            git rebase ...$i $branch
+        }
+    }
+}
+
+# git cherry-pick
+export def gcp [
+    commit?:         string@"nu-complete git log all"
+    --abort (-a)
+    --continue (-c)
+    --skip (-s)
+    --quit (-q)
+] {
+    if $abort {
+        git cherry-pick --abort
+    } else if $continue {
+        git cherry-pick --continue
+    } else if $skip {
+        git cherry-pick --skip
+    } else if $quit {
+        git cherry-pick --quit
+    } else {
+        git cherry-pick $commit
+    }
+}
+
+# copy file from other branch
+export def gcf [
+    branch:     string@"nu-complete git branches"
+    ...file:       string@"nu-complete git branch files"
+] {
+    ^git checkout $branch $file
+}
+
+# git reset
+export def grs [
+    commit?:      string@"nu-complete git log"
+    --hard (-h)
+    --clean (-c)
+] {
+    let h = if $hard {[--hard]} else {[]}
+    let cm = $commit | with-flag
+    git reset ...$h ...$cm
+    if $clean {
+        git clean -fd
+    }
+}
+
+
+# git remote
+export def grm [
+    remote?:       string@"nu-complete git remotes"
+    uri?:          string
+    --add (-a)
+    --rename (-r)
+    --delete (-d)
+    --update (-u)
+    --set (-s)
+] {
+    if ($remote | is-empty) {
+        git remote -v
+    } else if $add {
+        git remote add $remote $uri
+    } else if $set {
+        git remote set-url $remote $uri
+    } else if $rename {
+        let old = $remote
+        let new = $uri
+        git remote rename $old $new
+    } else if $delete {
+        git remote remove $remote
+    } else if $update {
+        git remote update $remote
+    } else {
+        git remote show $remote
+    }
+}
+
+# git bisect
+export def gbs [
+    --bad (-b)
+    --good (-g)
+    --reset (-r)
+    --start (-s)
+] {
+    if $good {
+        git bisect good
+    } else if $bad {
+        git bisect bad
+    } else if $reset {
+        git bisect reset
+    } else if $start {
+        git bisect start
+    } else {
+        git bisect
+    }
+}
+
+export def gha [] {
+    git log --pretty=%h»¦«%aN»¦«%s»¦«%aD
+    | lines
+    | split column "»¦«" sha1 committer desc merged_at
+    | histogram committer merger
+    | sort-by merger
+    | reverse
+}
+
+export def ggc [] {
+    git reflog expire --all --expire=now
+    git gc --prune=now --aggressive
+}
+
+export alias gcl = git config --list
 export alias gsw = git switch
-export alias gswc = git switch --create
+export alias gswc = git switch -c
+export alias gts = git tag -s
 
-export alias gts = git tag --sign
-export def gtv [] {
-    git tag | lines | sort
+export def _git_status [] {
+    # TODO: show-stash
+    let raw_status = do -i { git --no-optional-locks status --porcelain=2 --branch | lines }
+
+    let stashes = do -i { git stash list | lines | length }
+
+    mut status = {
+        idx_added_staged    : 0
+        idx_modified_staged : 0
+        idx_deleted_staged  : 0
+        idx_renamed         : 0
+        idx_type_changed    : 0
+        wt_untracked        : 0
+        wt_modified         : 0
+        wt_deleted          : 0
+        wt_type_changed     : 0
+        wt_renamed          : 0
+        ignored             : 0
+        conflicts           : 0
+        ahead               : 0
+        behind              : 0
+        stashes             : $stashes
+        repo_name           : no_repository
+        tag                 : no_tag
+        branch              : no_branch
+        remote              : ''
+    }
+
+    if ($raw_status | is-empty) { return $status }
+
+    for s in $raw_status {
+        let r = $s | split row ' '
+        match $r.0 {
+            '#' => {
+                match ($r.1 | str substring 7..) {
+                    'oid' => {
+                        $status.commit_hash = ($r.2 | str substring 0..8)
+                    }
+                    'head' => {
+                        $status.branch = $r.2
+                    }
+                    'upstream' => {
+                        $status.remote = $r.2
+                    }
+                    'ab' => {
+                        $status.ahead = ($r.2 | into int)
+                        $status.behind = ($r.3 | into int | math abs)
+                    }
+                }
+            }
+            '1'|'2' => {
+                match ($r.1 | str substring 0..1) {
+                    'A' => {
+                        $status.idx_added_staged += 1
+                    }
+                    'M' => {
+                        $status.idx_modified_staged += 1
+                    }
+                    'R' => {
+                        $status.idx_renamed += 1
+                    }
+                    'D' => {
+                        $status.idx_deleted_staged += 1
+                    }
+                    'T' => {
+                        $status.idx_type_changed += 1
+                    }
+                }
+                match ($r.1 | str substring 1..2) {
+                    'M' => {
+                        $status.wt_modified += 1
+                    }
+                    'R' => {
+                        $status.wt_renamed += 1
+                    }
+                    'D' => {
+                        $status.wt_deleted += 1
+                    }
+                    'T' => {
+                        $status.wt_type_changed += 1
+                    }
+                }
+            }
+            '?' => {
+                $status.wt_untracked += 1
+            }
+            'u' => {
+                $status.conflicts += 1
+            }
+        }
+    }
+
+    $status
 }
-export alias glum = git pull upstream (git_main_branch)
 
-export alias gunignore = git update-index --no-assume-unchanged
-export alias gup = git pull --rebase
-export alias gupv = git pull --rebase --verbose
-export alias gupa = git pull --rebase --autostash
-export alias gupav = git pull --rebase --autostash --verbose
+export def _git_log_stat [n]  {
+    do -i {
+        git log --reverse -n $n --pretty=»¦«%h --stat
+        | lines
+        | reduce -f { c: '', r: [] } {|it, acc|
+            if ($it | str starts-with '»¦«') {
+                $acc | upsert c ($it | str substring 6.. )
+            } else if ($it | find -r '[0-9]+ file.+change' | is-empty) {
+                $acc
+            } else {
+                let x = $it
+                    | split row ','
+                    | each {|x| $x
+                        | str trim
+                        | parse -r "(?P<num>[0-9]+) (?P<col>.+)"
+                        | get 0
+                        }
+                    | reduce -f {sha: $acc.c file:0 ins:0 del:0} {|i,a|
+                        let col = if ($i.col | str starts-with 'file') {
+                                'file'
+                            } else {
+                                $i.col | str substring ..3
+                            }
+                        let num = $i.num | into int
+                        $a | upsert $col $num
+                    }
+                $acc | upsert r ($acc.r | append $x)
+            }
+        }
+        | get r
+    }
+}
 
-export alias gwch = git whatchanged -p --abbrev-commit --pretty=medium
+export def _git_log [v num] {
+    let stat = if $v {
+        _git_log_stat $num
+    } else { {} }
+    let r = do -i {
+        git log --reverse -n $num --pretty=%h»¦«%s»¦«%aN»¦«%aE»¦«%aD»¦«%D
+        | lines
+        | split column "»¦«" sha message author email date refs
+        | update refs { split row ", " | where not ($it | is-empty) }
+        | each {|x| ($x| upsert date ($x.date | into datetime))}
+    }
+    if $v {
+        $r | merge $stat
+    } else {
+        $r
+    }
+}
 
-export alias gwt = git worktree
-export alias gwta = git worktree add
-export alias gwtls = git worktree list
-export alias gwtmv = git worktree move
-export alias gwtrm = git worktree remove
+def "nu-complete git log" [] {
+    git log -n 32 --pretty=%h»¦«%s
+    | lines
+    | split column "»¦«" value description
+    | each {|x| $x | update value $"($x.value)"}
+}
 
-export alias gam = git am
-export alias gamc = git am --continue
-export alias gams = git am --skip
-export alias gama = git am --abort
-export alias gamscp = git am --show-current-patch
+def "nu-complete git log all" [] {
+    git log --all -n 32 --pretty=%h»¦«%d»¦«%s
+    | lines
+    | split column "»¦«" value branch description
+    | each {|x| $x | update description $"($x.branch) ($x.description)" }
+}
+
+def "nu-complete git branch files" [context: string, offset:int] {
+    let token = $context | split row ' '
+    let branch = $token | get 1
+    let files = $token | skip 2
+    git ls-tree -r --name-only $branch
+    | lines
+    | filter {|x| not ($x in $files)}
+}
+
+def "nu-complete git branches" [] {
+    git branch
+    | lines
+    | filter {|x| not ($x | str starts-with '*')}
+    | each {|x| $"($x|str trim)"}
+}
+
+export def remote_braches [] {
+    git branch -r
+    | lines
+    | str trim
+    | filter {|x| not ($x | str starts-with 'origin/HEAD') }
+    | each {|x| $x | split row '/'}
+}
+
+def "nu-complete git remote branches" [context: string, offset: int] {
+    let ctx = $context | argx parse
+    let rb = (remote_braches)
+    if ($ctx._args | length) < 3 {
+        $rb | each {|x| {value: $x.1, description: $x.0} }
+    } else {
+        $rb | filter {|x| $x.1 == $ctx.1 } | each {|x| $x.0}
+    }
+}
+
+def "nu-complete git remotes" [] {
+  ^git remote | lines | each { |line| $line | str trim }
+}
+
+def git_main_branch [] {
+    git remote show origin
+    | lines
+    | str trim
+    | find --regex 'HEAD .*?[：: ].+'
+    | first
+    | str replace --regex 'HEAD .*?[：: ](.+)' '$1'
+}
