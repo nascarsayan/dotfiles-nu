@@ -8,6 +8,7 @@ export-env {
         | prepend ($env.HOME | path join ".gobrew" "current" "bin")
         | prepend ($env.HOME | path join ".gobrew" "bin")
         | prepend ($env.HOME | path join "go" "bin")
+        | prepend ($env.HOME | path join ".config" "carapace" "bin")
       )
       EDITOR: "hx"
       ZELLIJ_SSH_PANE_NAME: "ssh_zellij"

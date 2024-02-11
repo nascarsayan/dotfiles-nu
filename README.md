@@ -12,11 +12,27 @@ There are configs for some tools that I use. These include:
 - [`helix`](https://github.com/helix-editor/helix): A fast, lightweight, and cross-platform text editor.
 - [`zellij`](https://github.com/zellij-org/zellij): A terminal workspace with batteries included. (tmux alternative)
 - [`atuin`](https://github.com/atuinsh/atuin): ✨ Magical shell history
+- [`carapace`](https://github.com/rsteube/carapace-bin): multi-shell multi-command argument completer
 
-Install linuxbrew and then install the tools along with nushell using the following command:
+1. Install linuxbrew pre-requisites:
 
 ```sh
-brew install nushell fzf zoxide starship helix-editor zellij atuin
+sudo apt-get install build-essential procps curl file git
+```
+
+2. Install [linuxbrew](https://docs.brew.sh/Homebrew-on-Linux)
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+3. Install the tools:
+
+```sh
+brew install nushell fzf zoxide starship helix-editor zellij atuin gh
+
+brew tap rsteube/homebrew-tap
+brew install rsteube/tap/carapace
 ```
 
 ### Generated files
