@@ -78,7 +78,7 @@ export def gurl [
 
 # Clone a git repository into the Code directory and cd into it
 export def gcl [url: string] {
-  let path = (gurl $url | str replace -r "https?://" "")
+  mut path = (gurl $url | str replace -r "https?://" "")
   $path = ($env.HOME | path join "Code" $path)
   git clone $url $path
   cd $path

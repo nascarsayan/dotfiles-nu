@@ -42,6 +42,7 @@ brew install rsteube/tap/carapace
     starship init nu | save -f starship.nu
     atuin init nu | save -f atuin.nu
     zoxide init nushell | save -f zoxide.nu
+    carapace _carapace nushell | save -f carapace.nu
     ```
     - I edited [zoxide.nu](./3p-configs/zoxide.nu) because it was using some deprecated / removed commands.
     - I edited a few files so that `use` command can also be used to import those files.
