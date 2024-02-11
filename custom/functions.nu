@@ -51,17 +51,34 @@ export def ssh-attach-zellij [] {
   zellij attach -c ($env.ZELLIJ_SSH_PANE_NAME? | default "ssh_zellij")
 }
 
-export def --env gcl [$url: string] {
-  mut $path = $url
-  if ($path | str ends-with ".git") {
-    $path = ($path | str substring 0..-4)
+# Get the remote web URL of the git repository
+export def gurl [
+  url?: string
+  --remote(-r): string
+] {
+  mut url = $url
+  mut remote = $remote
+  if ($remote | is-empty) {
+    $remote = (git remote | lines | first | str trim -c "\n")
   }
-  $path = ($path | str replace -r "(.com):(v[0-9]+/)?" "$1/")
-  for pattern in ["https://", "http://", "git@ssh.", "git@"] {
-    if ($path | str starts-with $pattern) {
-      $path = ($path | str substring ($pattern | str length)..)
+  if ($url | is-empty) {
+    $url = (git remote get-url $remote | str trim -c "\n")
+  }
+  if ($url | str ends-with ".git") {
+    $url = ($url | str substring 0..-4)
+  }
+  $url = ($url | str replace -r "(.com):(v[0-9]+/)?" "$1/")
+  for pattern in ["git@ssh.", "git@"] {
+    if ($url | str starts-with $pattern) {
+      $url = "https://" + ($url | str substring ($pattern | str length)..)
     }
   }
+  $url
+}
+
+# Clone a git repository into the Code directory and cd into it
+export def gcl [url: string] {
+  let path = (gurl $url | str replace -r "https?://" "")
   $path = ($env.HOME | path join "Code" $path)
   git clone $url $path
   cd $path
@@ -87,6 +104,7 @@ export def ggpush [
   git add .
   git commit -m $message
   git push origin (git_current_branch) ...(if $force {[-f]} else {[]})
+  gurl
 }
 
 export def ggpull () {

@@ -44,7 +44,7 @@ brew install rsteube/tap/carapace
     zoxide init nushell | save -f zoxide.nu
     ```
     - I edited [zoxide.nu](./3p-configs/zoxide.nu) because it was using some deprecated / removed commands.
-    - I edited [atuin.nu](./3p-configs/atuin.nu) and [zoxide.nu](./3p-configs/zoxide.nu) so that `use` command can also be used to import those files.
+    - I edited a few files so that `use` command can also be used to import those files.
 
 - The [git aliases](./aliases/git.nu) was downloaded from [nu-scripts](https://github.com/nushell/nu_scripts/blob/main/aliases/git/git-aliases.nu)
 
