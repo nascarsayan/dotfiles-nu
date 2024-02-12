@@ -93,7 +93,7 @@ export def gco [$branch: string] {
   git checkout $branch
 }
 
-export def git_current_branch () {
+export def git-current-branch () {
   git branch --show-current | str trim -c "\n"
 }
 
@@ -104,12 +104,13 @@ export def ggpush [
 ] {
   git add .
   git commit -m $message
-  git push origin (git_current_branch) ...(if $force {[-f]} else {[]})
+  git push origin (git-current-branch) ...(if $force {[-f]} else {[]})
   gurl
 }
 
+# Git pull current branch from origin
 export def ggpull () {
-  git pull origin (git_current_branch)
+  git pull origin (git-current-branch)
 }
 
 export def get_govc_entry_curry (
@@ -117,7 +118,8 @@ export def get_govc_entry_curry (
     VC_ENV: string,
     GOVC_URL: string,
     GOVC_USERNAME: string,
-  GOVC_PASSWORD: string>) {
+    GOVC_PASSWORD: string
+  >) {
   return { |vc_env: string| 
     let record = $vcenter_envlist | where VC_ENV == $vc_env
     if (($record | length) != 1) {
@@ -126,4 +128,33 @@ export def get_govc_entry_curry (
     }
     $record | first | merge { GOVC_INSECURE: "true" }
   }
+}
+
+export def record-to-args (rec: record) {
+  $rec
+  | reject n 
+  | transpose key val
+  | reduce -f [] {|it, acc| ($acc | append [$"--($it.key)", $it.val] ) }
+}
+
+export def login-az (
+  az_spn: record<n: string, tenant: string, user: string, password: string>
+) {
+  az login --service-principal ...(record-to-args $az_spn) | save -f /dev/null
+  print $"Logged in using SPN ($az_spn.n)"
+}
+
+export def upload-to-blob [
+  blob: record<n: string, account-name: string, container-name: string, account-key: string>
+  file: path
+  --name(-n): string
+] {
+  mut name = $name
+  if ($name | is-empty) {
+    $name = (basename $file)
+  }
+  az storage blob upload --overwrite -f $file -n $name ...(record-to-args $blob)
+  let url = $"https://($blob.account-name).blob.core.windows.net/($blob.container-name)/($name)"
+  use std log
+  log info $"Uploaded ($file) to(char newline)(char newline)($url)"
 }

@@ -27,11 +27,15 @@ source ./aliases/mod.nu
 source ./custom/mod.nu
 source ./custom/data/data.nu
 
-let get_govc_entry = (get_govc_entry_curry $rec)
+let get_govc_entry = (get_govc_entry_curry $db_vcenters)
 
 # Set the vcenter environment
 export def --env vc-env [vc_env: string] {
   do $get_govc_entry $vc_env | load-env
+}
+
+export def upload [file: path] {
+  upload-to-blob $db_az_blobs.0 $file
 }
 
 # Somehow PATH is getting updated twice, due to ssh-attach-zellij and export-env,

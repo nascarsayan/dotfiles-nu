@@ -84,7 +84,7 @@ export def gb [
         }
         print ($d | table -i 1 -e)
     } else if $delete {
-        if $branch in $bs and (agree 'branch will be delete!') {
+        if $branch in $bs and (agree 'branch will be deleted!') {
                 git branch -D $branch
         }
         if $branch in (remote_braches | each {|x| $x.1}) and (agree 'delete remote branch?!') {
@@ -614,7 +614,7 @@ export def remote_braches [] {
     | lines
     | str trim
     | filter {|x| not ($x | str starts-with 'origin/HEAD') }
-    | each {|x| $x | split row '/'}
+    | each {|x| $x | split row '/' | skip 1 | str join '/'} 
 }
 
 def "nu-complete git remote branches" [context: string, offset: int] {
@@ -638,4 +638,5 @@ def git_main_branch [] {
     | find --regex 'HEAD .*?[：: ].+'
     | first
     | str replace --regex 'HEAD .*?[：: ](.+)' '$1'
+    | str trim
 }
