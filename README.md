@@ -71,5 +71,5 @@ cp $"($dotfiles_dir)/custom/data/data.example.nu" $"($dotfiles_dir)/custom/data/
 Copy other config files as needed.
 
 ```nu
-cp $"($dotfiles_dir)/custom/starship.toml" ~/.config/starship.toml
+ln -s $"($dotfiles_dir)/custom/starship.toml" ~/.config/starship.toml
 ```

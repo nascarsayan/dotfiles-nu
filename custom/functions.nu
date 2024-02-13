@@ -100,11 +100,16 @@ export def git-current-branch () {
 # Add, commit and push changes to the current branch. If --force is provided, force push the changes.
 export def ggpush [
   message: string
+  remote?: string
   --force(-f)
 ] {
-  git add .
+  git add --all
   git commit -m $message
-  git push origin (git-current-branch) ...(if $force {[-f]} else {[]})
+  mut remote = $remote
+  if ($remote | is-empty) {
+    $remote = (git remote | lines | first | str trim -c "\n")
+  }
+  git push $remote (git-current-branch) ...(if $force {[-f]} else {[]})
   gurl
 }
 
