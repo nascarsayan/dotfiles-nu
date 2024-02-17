@@ -110,9 +110,9 @@ export def --env gn [
 ] {
      if $init {
         if ($repo | is-empty) {
-            git init --initial-branch main
+            git init --initial-branch master
         } else {
-            git init $repo --initial-branch main
+            git init $repo --initial-branch master
             cd $repo
         }
         if $submodule {
@@ -631,7 +631,7 @@ def "nu-complete git remotes" [] {
   ^git remote | lines | each { |line| $line | str trim }
 }
 
-def git_main_branch [] {
+export def git_main_branch [] {
     git remote show origin
     | lines
     | str trim

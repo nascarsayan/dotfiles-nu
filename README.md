@@ -13,6 +13,7 @@ There are configs for some tools that I use. These include:
 - [`zellij`](https://github.com/zellij-org/zellij): A terminal workspace with batteries included. (tmux alternative)
 - [`atuin`](https://github.com/atuinsh/atuin): ✨ Magical shell history
 - [`carapace`](https://github.com/rsteube/carapace-bin): multi-shell multi-command argument completer
+- [`fnm`](https://github.com/Schniz/fnm): 🚀 Fast and simple Node.js version manager, built in Rust
 
 1. Install linuxbrew pre-requisites:
 
@@ -29,7 +30,7 @@ sudo apt-get install build-essential procps curl file git
 3. Install the tools:
 
 ```sh
-brew install nushell fzf zoxide starship helix-editor zellij atuin gh
+brew install nushell fzf zoxide starship helix-editor zellij atuin gh fnm
 
 brew tap rsteube/homebrew-tap
 brew install rsteube/tap/carapace
@@ -51,6 +52,7 @@ nu
     zoxide init nushell | save -f zoxide.nu
     carapace _carapace nushell | save -f carapace.nu
     ```
+    - [fnm.nu](./3p-configs/fnm.nu) was copied from [nu_scripts](https://github.com/nushell/nu_scripts/blob/main/modules/fnm/fnm.nu)
     - I edited [zoxide.nu](./3p-configs/zoxide.nu) because it was using some deprecated / removed commands.
     - I edited a few files so that `use` command can also be used to import those files.
 

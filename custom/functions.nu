@@ -89,12 +89,25 @@ export def --env mkcd [directory: path] {
   cd $directory
 }
 
-export def gco [$branch: string] {
-  git checkout $branch
-}
+export alias gco = git checkout
 
 export def git-current-branch () {
   git branch --show-current | str trim -c "\n"
+}
+
+# Add and commit changes to the current branch
+export def gcam [
+  message: string
+] {
+  git add --all
+  git commit -m $message
+}
+
+# Checkout master or main branch
+export alias gcm = try {
+  git checkout master
+} catch {
+  git checkout main
 }
 
 # Add, commit and push changes to the current branch. If --force is provided, force push the changes.
@@ -103,8 +116,11 @@ export def ggpush [
   remote?: string
   --force(-f)
 ] {
-  git add --all
-  git commit -m $message
+  try {
+    gcam $message
+  } catch {
+    print "No changes to commit, pushing current branch"
+  }
   mut remote = $remote
   if ($remote | is-empty) {
     $remote = (git remote | lines | first | str trim -c "\n")
@@ -162,4 +178,15 @@ export def upload-to-blob [
   let url = $"https://($blob.account-name).blob.core.windows.net/($blob.container-name)/($name)"
   use std log
   log info $"Uploaded ($file) to(char newline)(char newline)($url)"
+}
+
+export def c [path: path] {
+  # if code is not in path, use code-insiders
+  if ((which code | length) > 0) {
+    code $path
+  } else if ((which code-insiders | length) > 0) {
+    code-insiders $path
+  } else {
+    print "code or code-insiders not found in PATH"
+  }
 }
