@@ -190,3 +190,52 @@ export def c [path: path] {
     print "code or code-insiders not found in PATH"
   }
 }
+
+# Set the notes of the VM to the ArmID and Azure portal URL. Only works on the first appliance VM (non-upgraded VM). We don't have the ARMID details in cloudinit data for upgraded VMs.
+def set-appl-details-from-path [appl_path: string] {
+  let appl_vm = (govc object.collect -json $appl_path | from json)
+  def extract_cloudinit_data [xyzdata: string] {
+    let cloudinit_data = $appl_vm
+      | where name == config
+      | get val
+      | get extraConfig
+      | first
+      | where key == $xyzdata
+      | get value
+      | decode base64
+      | first
+      | from yaml
+    $cloudinit_data
+  }
+  # let appl_metadata = (extract_cloudinit_data "guestinfo.metadata")
+  # let appl_userdata = (extract_cloudinit_data "guestinfo.userdata")
+  let appl_vendordata = (extract_cloudinit_data "guestinfo.vendordata")
+  let appl_details = $appl_vendordata.runcmd.0
+  let armId = $appl_details
+  | str substring 5..
+  | split row ","
+  | each { split column ":" key val | first }
+  | where key == "ArmId"
+  | get val
+  | first
+  let notes = $"ArmID: ($armId)\n\nPortal URL: https://portal.azure.com/#resource($armId)/overview"
+  govc vm.change -vm $appl_path -annotation $notes
+  print $"++++ Notes updated for ($appl_path):\n($notes)\n\n\n"
+}
+
+export def set-appl-details [name: string] {
+  let appl_path: string = (govc find -type m -name $name)
+  set-appl-details-from-path $appl_path
+}
+
+export def set-appl-details-all [] {
+  let appls = (govc find -type m -name "*-control-plane-0" | lines)
+  for appl in $appls {
+    try {
+      print $"Setting appl details for ($appl)"
+      set-appl-details-from-path $appl
+    } catch {
+      print $"Failed to set appl details for ($appl)"
+    }
+  }
+}
