@@ -57,11 +57,11 @@ export def gurl [
   --remote(-r): string
 ] {
   mut url = $url
-  mut remote = $remote
-  if ($remote | is-empty) {
-    $remote = (git remote | lines | first | str trim -c "\n")
-  }
   if ($url | is-empty) {
+    mut remote = $remote
+    if ($remote | is-empty) {
+      $remote = (git remote | lines | first | str trim -c "\n")
+    }
     $url = (git remote get-url $remote | str trim -c "\n")
   }
   if ($url | str ends-with ".git") {
