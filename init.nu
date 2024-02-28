@@ -38,7 +38,7 @@ export def upload [file: path] {
   upload-to-blob $db_az_blobs.0 $file
 }
 
-$env.config.show_banner = "false"
+$env.config.show_banner = false
 
 # Somehow PATH is getting updated twice, due to ssh-attach-zellij and export-env,
 # so we need to make sure that we only run export-env once
