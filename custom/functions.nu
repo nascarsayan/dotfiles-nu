@@ -242,7 +242,7 @@ export def set-appl-details-all [] {
 
 export def k8s-req-and-lim [] {
   let pods = kubectl get pods -A -o yaml | from yaml
-  let containers = $pods.items
+  $pods.items
   | each {|$pod|
     $pod
     | insert resource_usage (
