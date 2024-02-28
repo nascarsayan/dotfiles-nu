@@ -262,3 +262,7 @@ export def k8s-req-and-lim [] {
     | first
   } | to csv
 }
+
+export def copy-admin-kc [] {
+  print "mkdir -p ~/.kube && sudo cp /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $USER ~/.kube"
+}
