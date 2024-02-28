@@ -239,3 +239,26 @@ export def set-appl-details-all [] {
     }
   }
 }
+
+export def k8s-req-and-lim [] {
+  let pods = kubectl get pods -A -o yaml | from yaml
+  let containers = $pods.items
+  | each {|$pod|
+    $pod
+    | insert resource_usage (
+      $pod.spec.containers | each {|$container|
+        $container
+        | insert cpu_req ($container.resources.requests? | default {} | get -i cpu | default "0")
+        | insert mem_req ($container.resources.requests? | default {} | get -i memory | default "0")
+        | insert cpu_lim ($container.resources.limits? | default {} | get -i cpu | default "0")
+        | insert mem_lim ($container.resources.limits? | default {} | get -i memory | default "0")
+        | insert container_name $container.name
+        | insert pod_name $pod.metadata.name
+        | insert namespace $pod.metadata.namespace
+        | select namespace pod_name container_name cpu_req mem_req cpu_lim mem_lim
+      }
+    )
+    | get resource_usage
+    | first
+  } | to csv
+}
