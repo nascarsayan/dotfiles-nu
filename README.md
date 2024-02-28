@@ -30,7 +30,7 @@ sudo apt-get install build-essential procps curl file git
 3. Install the tools:
 
 ```sh
-brew install nushell fzf zoxide starship helix-editor zellij atuin gh fnm
+brew install nushell fzf zoxide starship helix zellij atuin gh fnm
 
 brew tap rsteube/homebrew-tap
 brew install rsteube/tap/carapace
@@ -63,15 +63,25 @@ nu
 ### Installation
 
 ```nu
-let dotfiles_dir = "~/Code/github.com/nascarsayan/dotfiles-nu"
+let dotfiles_dir = $"($env.HOME)/Code/github.com/nascarsayan/dotfiles-nu"
 git clone https://github.com/nascarsayan/dotfiles-nu.git $dotfiles_dir
 # Copy the example data file to the actual data file, edit it as needed
 cp $"($dotfiles_dir)/custom/data/data.example.nu" $"($dotfiles_dir)/custom/data/data.nu"
-(char newline) + $"source ($dotfiles_dir)/init.nu" | save --append $nu.default-config-dir/config.nu
+(char newline) + $"source ($dotfiles_dir)/init.nu" | save --append $"($nu.default-config-dir)/config.nu"
 ```
 
 Copy other config files as needed.
 
 ```nu
-ln -s $"($dotfiles_dir)/custom/starship.toml" ~/.config/starship.toml
+ln -s $"($dotfiles_dir)/.config/starship.toml" ~/.config/starship.toml
+ln -s $"($dotfiles_dir)/.config/zellij" ~/.config/zellij
+```
+
+### Changing default shell
+
+```sh
+# Add nushell to /etc/shells
+echo "$(which nu)" | sudo tee -a /etc/shells
+# Change default shell
+chsh -s $(which nu)
 ```
