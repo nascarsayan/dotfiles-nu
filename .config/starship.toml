@@ -19,3 +19,4 @@ disabled = false
 [custom.INCOGNITO]
 when = "$env.INCOGNITO"
 format = "[🥷]($style) "
+shell = "nu"
