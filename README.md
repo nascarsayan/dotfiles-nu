@@ -94,6 +94,7 @@ To go to incognito mode, you can run this.
 The run command wont be saved to either of these files:
 - atuin (thanks to `INCOGNITO` env var set to any random value, here empty)
 - nushell history file (thanks to `--no-history`).
+In the startship prompt, the incognito mode is [indicated by 🥷](./.config/starship.toml#L19)
 
 This is helpful in trying ad-hoc commands, especially containing sensitive information such as passwords or tokens.
 
