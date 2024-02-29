@@ -255,7 +255,7 @@ export def k8s-req-and-lim [] {
         | insert container_name $container.name
         | insert pod_name $pod.metadata.name
         | insert namespace $pod.metadata.namespace
-        | select namespace pod_name container_name cpu_req mem_req cpu_lim mem_lim
+        | select namespace pod_name container_name cpu_req cpu_lim mem_req mem_lim
       }
     )
     | get resource_usage

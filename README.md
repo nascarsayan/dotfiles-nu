@@ -85,3 +85,25 @@ echo "$(which nu)" | sudo tee -a /etc/shells
 # Change default shell
 chsh -s $(which nu)
 ```
+
+## Shell History
+
+### Incognito
+
+To go to incognito mode, you can run this.
+The run command wont be saved to either of these files:
+- atuin (thanks to `INCOGNITO` env var set to any random value, here empty)
+- nushell history file (thanks to `--no-history`).
+
+This is helpful in trying ad-hoc commands, especially containing sensitive information such as passwords or tokens.
+
+```nu
+INCOGNITO= nu --no-history
+```
+
+### Import to another machine
+
+To import your shell history to another machine:
+- Get your existing nushell history file `~/.config/nushell/history.txt` to the new machine.
+- Merge the contents of the history file to the new machine's history file. (You can copy paste the contents of the file to the new machine's history file)
+- Run `atuin import auto` to import the history to atuin.
